@@ -1,5 +1,5 @@
 
-name: Build AhmadVision APK
+name: Build Ahmed Vision APK
 
 on:
   workflow_dispatch:
@@ -31,6 +31,21 @@ jobs:
       - name: Unpack project
         run: unzip -o AhmadVision3-source.zip -d source
 
+      - name: Add AndroidX annotation dependency
+        run: |
+          cat > add-annotation.init.gradle <<'EOF'
+          allprojects {
+              afterEvaluate { project ->
+                  if (project.name == 'app') {
+                      project.dependencies.add(
+                          'implementation',
+                          'androidx.annotation:annotation:1.8.2'
+                      )
+                  }
+              }
+          }
+          EOF
+
       - name: Build APK
         run: |
           PROJECT_DIR=$(find source -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs -r dirname)
@@ -39,11 +54,11 @@ jobs:
             exit 1
           fi
           cd "$PROJECT_DIR"
-          gradle assembleDebug --stacktrace
+          gradle -I "$GITHUB_WORKSPACE/add-annotation.init.gradle" assembleDebug --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: AhmadVision-APK
+          name: AhmedVision-APK
           path: source/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
