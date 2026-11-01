@@ -1,11 +1,11 @@
 
+
 name: Build AhmadVision APK
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [main]
 
 permissions:
   contents: read
@@ -16,26 +16,21 @@ jobs:
 
     steps:
       - name: Download project
-        uses: actions/checkout@v4
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-
-      - name: Extract source
         run: |
-          unzip -o AhmadVision3-source.zip -d source
-          find source -maxdepth 5 -type f | head -100
+          git clone https://github.com/abusabihaahmed-web/Ahmedvision1.git repo
+          unzip -o repo/AhmadVision3-source.zip -d source
+
+      - name: Install Java and Gradle
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y openjdk-17-jdk gradle unzip
 
       - name: Build APK
         run: |
-          cd source
-          PROJECT_DIR=$(find . -name settings.gradle -o -name settings.gradle.kts | head -1 | xargs -r dirname)
+          PROJECT_DIR=$(find source -name settings.gradle -o -name settings.gradle.kts | head -1 | xargs -r dirname)
 
           if [ -z "$PROJECT_DIR" ]; then
-            echo "Android Gradle project not found"
+            echo "Android project not found"
             exit 1
           fi
 
@@ -49,10 +44,9 @@ jobs:
           fi
 
       - name: Upload APK
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
         with:
           name: AhmadVision-APK
           path: source/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
-          retention-days: 7
 
