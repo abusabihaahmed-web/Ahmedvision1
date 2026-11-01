@@ -1,5 +1,4 @@
 
-
 name: Build AhmadVision APK
 
 on:
@@ -15,38 +14,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Download project
-        run: |
-          git clone https://github.com/abusabihaahmed-web/Ahmedvision1.git repo
-          unzip -o repo/AhmadVision3-source.zip -d source
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Install Java and Gradle
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y openjdk-17-jdk gradle unzip
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+
+      - name: Unpack project
+        run: unzip -o AhmadVision3-source.zip -d source
 
       - name: Build APK
         run: |
-          PROJECT_DIR=$(find source -name settings.gradle -o -name settings.gradle.kts | head -1 | xargs -r dirname)
-
+          PROJECT_DIR=$(find source -type f \( -name settings.gradle -o -name settings.gradle.kts \) -print -quit | xargs -r dirname)
           if [ -z "$PROJECT_DIR" ]; then
             echo "Android project not found"
             exit 1
           fi
-
           cd "$PROJECT_DIR"
-
-          if [ -f gradlew ]; then
-            chmod +x gradlew
-            ./gradlew assembleDebug
-          else
-            gradle assembleDebug
-          fi
+          gradle assembleDebug --stacktrace
 
       - name: Upload APK
-        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08
+        uses: actions/upload-artifact@v4
         with:
           name: AhmadVision-APK
           path: source/**/build/outputs/apk/**/*.apk
           if-no-files-found: error
-
