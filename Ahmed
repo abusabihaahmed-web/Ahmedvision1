@@ -1,0 +1,31 @@
+name: Build Ahmad Vision APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract project
+        run: |
+          unzip -o AhmadVision2.zip
+          test -f AhmadVision2/settings.gradle
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.9'
+      - name: Build APK
+        working-directory: AhmadVision2
+        run: gradle --no-daemon assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Ahmad-Vision-APK
+          path: AhmadVision2/app/build/outputs/apk/debug/app-debug.apk
